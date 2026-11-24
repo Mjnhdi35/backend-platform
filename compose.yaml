@@ -1,0 +1,32 @@
+services:
+  mysql:
+    image: mysql:lts
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-root}
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-app}
+      MYSQL_USER: ${MYSQL_USER:-app}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-app}
+    ports:
+      - '${MYSQL_PORT:-3306}:3306'
+    volumes:
+      - mysql-data:/var/lib/mysql
+    healthcheck:
+      test: ['CMD', 'mysqladmin', 'ping', '-h', 'localhost', '-uroot', '-p$$MYSQL_ROOT_PASSWORD']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  adminer:
+    image: adminer:latest
+    restart: unless-stopped
+    environment:
+      ADMINER_DEFAULT_SERVER: mysql
+    ports:
+      - '${ADMINER_PORT:-8080}:8080'
+    depends_on:
+      mysql:
+        condition: service_healthy
+
+volumes:
+  mysql-data:
